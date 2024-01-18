@@ -1,19 +1,27 @@
 const express = require('express')
 const app = express()
-const port = 3000
+const port = 4000
 const csv = require("csv-parser");
-const fs = require('fs')
-const results = [];
+const fs = require('fs');
+let jsondata = require("./json-files/data.json"); 
+let index = 0;  
 
-fs.createReadStream('csv-files/data.csv')
-  .pipe(csv())
-  .on('data', (data) => results.push(data))
-  .on('end', () => {
-    console.log(results); 
-  });
-  
 app.get('/api', (req, res) => { 
-  res.send(results)
+  res.send(JSON.stringify(jsondata))
+})
+ 
+app.use(express.json()) // for json
+app.use(express.urlencoded({ extended: true })) // for form data
+
+// after above parsing 
+app.post('/apipos', (req, res) => {  
+    
+    if ( req.body != null && jsondata[req.body.id] != null){  
+    	jsondata[req.body.id].position.x = req.body.pos.x;
+    	jsondata[req.body.id].position.y = req.body.pos.y; 
+    	fs.writeFileSync("./json-files/data.json", JSON.stringify(jsondata));
+    }  
+    res.send("ok");
 })
 
 app.listen(port, () => {
